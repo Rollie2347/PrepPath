@@ -1,0 +1,21 @@
+{
+  "name": "preppath-content-pipeline",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "tsx --env-file=../../.env generate.ts",
+    "verify": "tsx --env-file=../../.env verify.ts",
+    "review": "tsx --env-file=../../.env review.ts",
+    "publish": "tsx --env-file=../../.env publish.ts",
+    "coverage": "tsx --env-file=../../.env coverage.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.134.0",
+    "firebase-admin": "^14.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "tsx": "^4.23.15",
+    "typescript": "~6.0.3"
+  }
+}

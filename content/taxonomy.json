@@ -1,0 +1,186 @@
+{
+  "version": 1,
+  "sources": {
+    "sat": "College Board, Assessment Framework for the Digital SAT Suite, Tables 10 and 16 (https://satsuite.collegeboard.org/media/pdf/assessment-framework-for-digital-sat-suite.pdf)",
+    "act": "ACT, Enhanced ACT K-12 FAQs (https://www.act.org/content/act/en/products-and-services/the-act-educator/the-act-test/enhancements-k12/faqs.html)"
+  },
+  "tests": [
+    {
+      "id": "sat",
+      "name": "Digital SAT",
+      "scale": { "min": 400, "max": 1600, "sectionMin": 200, "sectionMax": 800 },
+      "sections": [
+        {
+          "id": "sat.rw",
+          "name": "Reading and Writing",
+          "questions": 54,
+          "minutes": 64,
+          "modules": 2,
+          "domains": [
+            {
+              "id": "sat.rw.ii",
+              "name": "Information and Ideas",
+              "weight": 0.26,
+              "questions": [12, 14],
+              "skills": [
+                { "id": "sat.rw.ii.central", "name": "Central Ideas and Details" },
+                { "id": "sat.rw.ii.evidence_text", "name": "Command of Evidence: Textual" },
+                { "id": "sat.rw.ii.evidence_quant", "name": "Command of Evidence: Quantitative" },
+                { "id": "sat.rw.ii.inferences", "name": "Inferences" }
+              ]
+            },
+            {
+              "id": "sat.rw.cs",
+              "name": "Craft and Structure",
+              "weight": 0.28,
+              "questions": [13, 15],
+              "skills": [
+                { "id": "sat.rw.cs.words", "name": "Words in Context" },
+                { "id": "sat.rw.cs.structure", "name": "Text Structure and Purpose" },
+                { "id": "sat.rw.cs.crosstext", "name": "Cross-Text Connections" }
+              ]
+            },
+            {
+              "id": "sat.rw.ei",
+              "name": "Expression of Ideas",
+              "weight": 0.2,
+              "questions": [8, 12],
+              "skills": [
+                { "id": "sat.rw.ei.synthesis", "name": "Rhetorical Synthesis" },
+                { "id": "sat.rw.ei.transitions", "name": "Transitions" }
+              ]
+            },
+            {
+              "id": "sat.rw.sec",
+              "name": "Standard English Conventions",
+              "weight": 0.26,
+              "questions": [11, 15],
+              "skills": [
+                { "id": "sat.rw.sec.boundaries", "name": "Boundaries" },
+                { "id": "sat.rw.sec.form", "name": "Form, Structure, and Sense" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "sat.math",
+          "name": "Math",
+          "questions": 44,
+          "minutes": 70,
+          "modules": 2,
+          "domains": [
+            {
+              "id": "sat.math.alg",
+              "name": "Algebra",
+              "weight": 0.35,
+              "questions": [13, 15],
+              "skills": [
+                { "id": "sat.math.alg.lin1", "name": "Linear equations in one variable" },
+                { "id": "sat.math.alg.lin2", "name": "Linear equations in two variables" },
+                { "id": "sat.math.alg.linfn", "name": "Linear functions" },
+                { "id": "sat.math.alg.systems", "name": "Systems of two linear equations in two variables" },
+                { "id": "sat.math.alg.ineq", "name": "Linear inequalities in one or two variables" }
+              ]
+            },
+            {
+              "id": "sat.math.adv",
+              "name": "Advanced Math",
+              "weight": 0.35,
+              "questions": [13, 15],
+              "skills": [
+                { "id": "sat.math.adv.equiv", "name": "Equivalent expressions" },
+                { "id": "sat.math.adv.nonlineq", "name": "Nonlinear equations in one variable and systems of equations in two variables" },
+                { "id": "sat.math.adv.nonlinfn", "name": "Nonlinear functions" }
+              ]
+            },
+            {
+              "id": "sat.math.psda",
+              "name": "Problem-Solving and Data Analysis",
+              "weight": 0.15,
+              "questions": [5, 7],
+              "skills": [
+                { "id": "sat.math.psda.ratios", "name": "Ratios, rates, proportional relationships, and units" },
+                { "id": "sat.math.psda.percent", "name": "Percentages" },
+                { "id": "sat.math.psda.onevar", "name": "One-variable data: distributions and measures of center and spread" },
+                { "id": "sat.math.psda.twovar", "name": "Two-variable data: models and scatterplots" },
+                { "id": "sat.math.psda.prob", "name": "Probability and conditional probability" },
+                { "id": "sat.math.psda.inference", "name": "Inference from sample statistics and margin of error" },
+                { "id": "sat.math.psda.claims", "name": "Evaluating statistical claims: observational studies and experiments" }
+              ]
+            },
+            {
+              "id": "sat.math.geo",
+              "name": "Geometry and Trigonometry",
+              "weight": 0.15,
+              "questions": [5, 7],
+              "skills": [
+                { "id": "sat.math.geo.area", "name": "Area and volume" },
+                { "id": "sat.math.geo.lines", "name": "Lines, angles, and triangles" },
+                { "id": "sat.math.geo.trig", "name": "Right triangles and trigonometry" },
+                { "id": "sat.math.geo.circles", "name": "Circles" }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "act",
+      "name": "ACT (enhanced)",
+      "scale": { "min": 1, "max": 36 },
+      "compositeSections": ["act.eng", "act.math", "act.read"],
+      "sections": [
+        {
+          "id": "act.eng",
+          "name": "English",
+          "questions": 50,
+          "minutes": 35,
+          "domains": [
+            { "id": "act.eng.pow", "name": "Production of Writing", "weight": 0.405, "skills": [{ "id": "act.eng.pow", "name": "Production of Writing" }] },
+            { "id": "act.eng.kol", "name": "Knowledge of Language", "weight": 0.205, "skills": [{ "id": "act.eng.kol", "name": "Knowledge of Language" }] },
+            { "id": "act.eng.cse", "name": "Conventions of Standard English", "weight": 0.405, "skills": [{ "id": "act.eng.cse", "name": "Conventions of Standard English" }] }
+          ]
+        },
+        {
+          "id": "act.math",
+          "name": "Math",
+          "questions": 45,
+          "minutes": 50,
+          "notes": "Preparing for Higher Math (80%) = nq/alg/fn/geo/sp; Integrating Essential Skills is the other 20%. Modeling (>=20%) is a cross-cutting tag applied on top of a skill.",
+          "crossTags": ["act.math.modeling"],
+          "domains": [
+            { "id": "act.math.nq", "name": "Number & Quantity", "weight": 0.11, "skills": [{ "id": "act.math.nq", "name": "Number & Quantity" }] },
+            { "id": "act.math.alg", "name": "Algebra", "weight": 0.185, "skills": [{ "id": "act.math.alg", "name": "Algebra" }] },
+            { "id": "act.math.fn", "name": "Functions", "weight": 0.185, "skills": [{ "id": "act.math.fn", "name": "Functions" }] },
+            { "id": "act.math.geo", "name": "Geometry", "weight": 0.185, "skills": [{ "id": "act.math.geo", "name": "Geometry" }] },
+            { "id": "act.math.sp", "name": "Statistics & Probability", "weight": 0.135, "skills": [{ "id": "act.math.sp", "name": "Statistics & Probability" }] },
+            { "id": "act.math.ies", "name": "Integrating Essential Skills", "weight": 0.2, "skills": [{ "id": "act.math.ies", "name": "Integrating Essential Skills" }] }
+          ]
+        },
+        {
+          "id": "act.read",
+          "name": "Reading",
+          "questions": 36,
+          "minutes": 40,
+          "domains": [
+            { "id": "act.read.kid", "name": "Key Ideas and Details", "weight": 0.48, "skills": [{ "id": "act.read.kid", "name": "Key Ideas and Details" }] },
+            { "id": "act.read.cs", "name": "Craft and Structure", "weight": 0.295, "skills": [{ "id": "act.read.cs", "name": "Craft and Structure" }] },
+            { "id": "act.read.iki", "name": "Integration of Knowledge and Ideas", "weight": 0.225, "skills": [{ "id": "act.read.iki", "name": "Integration of Knowledge and Ideas" }] }
+          ]
+        },
+        {
+          "id": "act.sci",
+          "name": "Science (optional)",
+          "questions": 40,
+          "minutes": 40,
+          "optional": true,
+          "domains": [
+            { "id": "act.sci.iod", "name": "Interpretation of Data", "weight": 0.44, "skills": [{ "id": "act.sci.iod", "name": "Interpretation of Data" }] },
+            { "id": "act.sci.si", "name": "Scientific Investigation", "weight": 0.25, "skills": [{ "id": "act.sci.si", "name": "Scientific Investigation" }] },
+            { "id": "act.sci.esam", "name": "Evaluating Scientific Arguments and Models with Evidence", "weight": 0.31, "skills": [{ "id": "act.sci.esam", "name": "Evaluating Scientific Arguments and Models with Evidence" }] }
+          ]
+        }
+      ]
+    }
+  ]
+}
