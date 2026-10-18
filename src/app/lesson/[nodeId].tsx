@@ -4,7 +4,6 @@ import { SymbolView } from 'expo-symbols';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, useAnimatedStyle, withTiming } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 import type { CompleteLessonRequest, CompleteLessonResponse } from '@shared/api';
 import { isCorrect } from '@shared/grading';
@@ -14,6 +13,7 @@ import { dayKey } from '@shared/progression/streak';
 import type { Question, TestId } from '@shared/types';
 
 import { GameButton } from '@/components/game-button';
+import { ModalSafeArea } from '@/components/modal-safe-area';
 import { MathText } from '@/components/math-text';
 import { QuestionView } from '@/components/question-view';
 import { Brand } from '@/constants/theme';
@@ -152,7 +152,7 @@ export default function LessonScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
+    <ModalSafeArea style={{ flex: 1, backgroundColor: theme.background }}>
       <View style={styles.top}>
         <Pressable onPress={() => router.back()} hitSlop={12}>
           <SymbolView name="xmark" tintColor={theme.textSecondary} size={22} />
@@ -191,7 +191,7 @@ export default function LessonScreen() {
       ) : (
         <Feedback correct={checked} question={q} onContinue={next} />
       )}
-    </SafeAreaView>
+    </ModalSafeArea>
   );
 }
 
@@ -203,7 +203,7 @@ function TrickCard({ card, onStart }: { card: StrategyCard; onStart: () => void 
     router.push('/calculator');
   };
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
+    <ModalSafeArea style={{ flex: 1, backgroundColor: theme.background }}>
       <View style={styles.top}>
         <Pressable onPress={() => router.back()} hitSlop={12}>
           <SymbolView name="xmark" tintColor={theme.textSecondary} size={22} />
@@ -228,7 +228,7 @@ function TrickCard({ card, onStart }: { card: StrategyCard; onStart: () => void 
         <GameButton title="Try it in the calculator" variant="locked" onPress={tryIt} />
         <GameButton title="Start practice" onPress={onStart} />
       </View>
-    </SafeAreaView>
+    </ModalSafeArea>
   );
 }
 
@@ -264,7 +264,7 @@ function Summary({ result, kind }: { result: CompleteLessonResponse; kind: Kind 
   const title =
     kind === 'legendary' ? (result.passed ? 'Legendary!' : 'So close') : kind === 'checkpoint' ? (result.passed ? 'Unit skipped!' : 'Not yet') : 'Lesson complete!';
   return (
-    <SafeAreaView style={[styles.summary, { backgroundColor: theme.background }]}>
+    <ModalSafeArea style={[styles.summary, { backgroundColor: theme.background }]}>
       <Text style={[styles.h1, { color: Brand.gold }]}>{title}</Text>
       <View style={styles.tiles}>
         <Tile label="TOTAL XP" value={`${result.xp.total}`} color={Brand.gold} />
@@ -280,7 +280,7 @@ function Summary({ result, kind }: { result: CompleteLessonResponse; kind: Kind 
         <Text key={q} style={{ color: theme.text, marginTop: 6 }}>✓ Quest complete: {q}</Text>
       ))}
       <GameButton title="Continue" onPress={() => router.back()} style={{ alignSelf: 'stretch', marginTop: 32 }} />
-    </SafeAreaView>
+    </ModalSafeArea>
   );
 }
 

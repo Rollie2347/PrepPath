@@ -2,7 +2,6 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DIAGNOSTIC, diagnosticPlan, MIX, pickBlock, routeMix, type DiagnosticBlock } from '@shared/adaptive/diagnostic';
 import type { CompleteDiagnosticResponse } from '@shared/api';
@@ -11,6 +10,7 @@ import { allSkills, getSection, getTest } from '@shared/taxonomy';
 import type { Question, TestId } from '@shared/types';
 
 import { GameButton } from '@/components/game-button';
+import { ModalSafeArea } from '@/components/modal-safe-area';
 import { QuestionView } from '@/components/question-view';
 import { Brand } from '@/constants/theme';
 import { completeDiagnostic } from '@/data/api';
@@ -122,7 +122,7 @@ export default function DiagnosticScreen() {
     const sections = upcoming.map((b) => getSection(b.sectionId).name);
     const perSection = test === 'sat' ? DIAGNOSTIC.routingItems + DIAGNOSTIC.routedItems : DIAGNOSTIC.linearItems;
     return (
-      <SafeAreaView style={[styles.page, { backgroundColor: theme.background }]}>
+      <ModalSafeArea style={[styles.page, { backgroundColor: theme.background }]}>
         <Text style={[styles.h1, { color: theme.text }]}>Find your starting point</Text>
         {sections.length ? (
           <>
@@ -139,7 +139,7 @@ export default function DiagnosticScreen() {
           <Text style={[styles.p, { color: theme.textSecondary }]}>There are no {spec.name} questions to test with yet.</Text>
         )}
         <GameButton title="Not now" variant="locked" onPress={() => router.back()} style={{ alignSelf: 'stretch', marginTop: 12 }} />
-      </SafeAreaView>
+      </ModalSafeArea>
     );
   }
 
@@ -147,14 +147,14 @@ export default function DiagnosticScreen() {
     const nextName = getSection(upcoming[0].sectionId).name;
     const sameSection = upcoming[0].sectionId === block.info.sectionId;
     return (
-      <SafeAreaView style={[styles.page, { backgroundColor: theme.background }]}>
+      <ModalSafeArea style={[styles.page, { backgroundColor: theme.background }]}>
         <Text style={[styles.h1, { color: theme.text }]}>Block done</Text>
         <Text style={[styles.p, { color: theme.textSecondary }]}>
           {sameSection ? `Next: a second ${nextName} block, matched to how you did.` : `Next: ${nextName}.`} More answers give a better placement.
         </Text>
         <GameButton title="Keep going" onPress={nextBlock} style={{ alignSelf: 'stretch', marginTop: 24 }} />
         <GameButton title="Enough for now" variant="locked" onPress={() => void submit()} style={{ alignSelf: 'stretch', marginTop: 12 }} />
-      </SafeAreaView>
+      </ModalSafeArea>
     );
   }
 
@@ -179,7 +179,7 @@ export default function DiagnosticScreen() {
   if (!block) return null;
   const q = block.items[index];
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
+    <ModalSafeArea style={{ flex: 1, backgroundColor: theme.background }}>
       <View style={styles.top}>
         <Pressable onPress={close} hitSlop={12}>
           <SymbolView name="xmark" tintColor={theme.textSecondary} size={22} />
@@ -199,7 +199,7 @@ export default function DiagnosticScreen() {
       <View style={styles.footer}>
         <GameButton title="Next" disabled={response === null} onPress={next} />
       </View>
-    </SafeAreaView>
+    </ModalSafeArea>
   );
 }
 
@@ -209,7 +209,7 @@ function Results({ test, data }: { test: TestId; data: CompleteDiagnosticRespons
   const domainName = new Map(spec.sections.flatMap((s) => s.domains.map((d) => [d.id, d.name] as const)));
   const { result, estimate } = data;
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
+    <ModalSafeArea style={{ flex: 1, backgroundColor: theme.background }}>
       <ScrollView contentContainerStyle={[styles.page, { justifyContent: 'flex-start' }]}>
         <Text style={[styles.h1, { color: theme.text }]}>Your starting point</Text>
         <Text style={[styles.kicker, { color: theme.textSecondary, marginTop: 16 }]}>PROVISIONAL ESTIMATE</Text>
@@ -240,7 +240,7 @@ function Results({ test, data }: { test: TestId; data: CompleteDiagnosticRespons
         <Text style={[styles.p, { color: theme.textSecondary, marginTop: 16 }]}>Missed questions are waiting in Practice → Fix mistakes.</Text>
         <GameButton title="Start learning" onPress={() => router.back()} style={{ alignSelf: 'stretch', marginTop: 24 }} />
       </ScrollView>
-    </SafeAreaView>
+    </ModalSafeArea>
   );
 }
 
