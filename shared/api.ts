@@ -1,3 +1,5 @@
+import type { DiagnosticResult } from './adaptive/diagnostic';
+import type { ScoreEstimate } from './adaptive/score';
 import type { XpBreakdown } from './progression/xp';
 import type { Difficulty, TestId } from './types';
 
@@ -32,6 +34,17 @@ export interface CompleteLessonResponse {
   questsCompleted: string[];
   gemsEarned: number;
   graded: { questionId: string; correct: boolean; difficulty: Difficulty }[];
+}
+
+export interface CompleteDiagnosticRequest {
+  test: TestId;
+  answers: { questionId: string; response: number | string; timeMs: number }[];
+}
+
+export interface CompleteDiagnosticResponse {
+  result: DiagnosticResult;
+  /** Predicted score after seeding mastery from the diagnostic (provisional). */
+  estimate: ScoreEstimate;
 }
 
 export interface OpenChestResponse {

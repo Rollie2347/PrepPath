@@ -1,63 +1,164 @@
 {
-  "version": 1,
+  "version": 2,
   "sources": {
-    "sat": "College Board, Assessment Framework for the Digital SAT Suite, Tables 10 and 16 (https://satsuite.collegeboard.org/media/pdf/assessment-framework-for-digital-sat-suite.pdf)",
-    "act": "ACT, Enhanced ACT K-12 FAQs (https://www.act.org/content/act/en/products-and-services/the-act-educator/the-act-test/enhancements-k12/faqs.html)"
+    "sat": "College Board, Assessment Framework for the Digital SAT Suite v4 (Sept 2026): Tables 10, 16, 19-20 and Appendix B (https://satsuite.collegeboard.org/media/pdf/assessment-framework-for-digital-sat-suite.pdf)",
+    "act": "ACT Technical Manual (Sept 2026) Tables 3.4, 3.6, 3.8 (https://www.act.org/content/dam/act/unsecured/documents/ACT_Technical_Manual.pdf); ACT R2519, Design Framework for the ACT Enhancements (Feb 2026) Tables 1.3, 1.5, 1.9, 1.12 (https://www.act.org/content/dam/act/unsecured/documents/R2519-Design-Framework-for-the-ACT-Enhancements-2026-02.pdf)"
   },
   "tests": [
     {
       "id": "sat",
       "name": "Digital SAT",
-      "scale": { "min": 400, "max": 1600, "sectionMin": 200, "sectionMax": 800 },
+      "scale": {
+        "min": 400,
+        "max": 1600,
+        "sectionMin": 200,
+        "sectionMax": 800
+      },
       "sections": [
         {
           "id": "sat.rw",
           "name": "Reading and Writing",
           "questions": 54,
+          "scored": 50,
           "minutes": 64,
           "modules": 2,
+          "moduleOrder": [
+            "sat.rw.cs",
+            "sat.rw.ii",
+            "sat.rw.sec",
+            "sat.rw.ei"
+          ],
           "domains": [
             {
               "id": "sat.rw.ii",
               "name": "Information and Ideas",
               "weight": 0.26,
-              "questions": [12, 14],
+              "questions": [
+                12,
+                14
+              ],
               "skills": [
-                { "id": "sat.rw.ii.central", "name": "Central Ideas and Details" },
-                { "id": "sat.rw.ii.evidence_text", "name": "Command of Evidence: Textual" },
-                { "id": "sat.rw.ii.evidence_quant", "name": "Command of Evidence: Quantitative" },
-                { "id": "sat.rw.ii.inferences", "name": "Inferences" }
+                {
+                  "id": "sat.rw.ii.central",
+                  "name": "Central Ideas and Details"
+                },
+                {
+                  "id": "sat.rw.ii.evidence_text",
+                  "name": "Command of Evidence: Textual"
+                },
+                {
+                  "id": "sat.rw.ii.evidence_quant",
+                  "name": "Command of Evidence: Quantitative"
+                },
+                {
+                  "id": "sat.rw.ii.inferences",
+                  "name": "Inferences"
+                }
               ]
             },
             {
               "id": "sat.rw.cs",
               "name": "Craft and Structure",
               "weight": 0.28,
-              "questions": [13, 15],
+              "questions": [
+                13,
+                15
+              ],
               "skills": [
-                { "id": "sat.rw.cs.words", "name": "Words in Context" },
-                { "id": "sat.rw.cs.structure", "name": "Text Structure and Purpose" },
-                { "id": "sat.rw.cs.crosstext", "name": "Cross-Text Connections" }
+                {
+                  "id": "sat.rw.cs.words",
+                  "name": "Words in Context"
+                },
+                {
+                  "id": "sat.rw.cs.structure",
+                  "name": "Text Structure and Purpose"
+                },
+                {
+                  "id": "sat.rw.cs.crosstext",
+                  "name": "Cross-Text Connections"
+                }
               ]
             },
             {
               "id": "sat.rw.ei",
               "name": "Expression of Ideas",
               "weight": 0.2,
-              "questions": [8, 12],
+              "questions": [
+                8,
+                12
+              ],
               "skills": [
-                { "id": "sat.rw.ei.synthesis", "name": "Rhetorical Synthesis" },
-                { "id": "sat.rw.ei.transitions", "name": "Transitions" }
+                {
+                  "id": "sat.rw.ei.synthesis",
+                  "name": "Rhetorical Synthesis"
+                },
+                {
+                  "id": "sat.rw.ei.transitions",
+                  "name": "Transitions"
+                }
               ]
             },
             {
               "id": "sat.rw.sec",
               "name": "Standard English Conventions",
               "weight": 0.26,
-              "questions": [11, 15],
+              "questions": [
+                11,
+                15
+              ],
               "skills": [
-                { "id": "sat.rw.sec.boundaries", "name": "Boundaries" },
-                { "id": "sat.rw.sec.form", "name": "Form, Structure, and Sense" }
+                {
+                  "id": "sat.rw.sec.boundaries",
+                  "name": "Boundaries",
+                  "tags": [
+                    {
+                      "id": "sat.rw.sec.boundaries.between",
+                      "name": "Between sentences"
+                    },
+                    {
+                      "id": "sat.rw.sec.boundaries.within",
+                      "name": "Within sentences"
+                    },
+                    {
+                      "id": "sat.rw.sec.boundaries.supplements",
+                      "name": "Supplements"
+                    },
+                    {
+                      "id": "sat.rw.sec.boundaries.none",
+                      "name": "No punctuation needed"
+                    }
+                  ]
+                },
+                {
+                  "id": "sat.rw.sec.form",
+                  "name": "Form, Structure, and Sense",
+                  "tags": [
+                    {
+                      "id": "sat.rw.sec.form.subject_verb",
+                      "name": "Subject-verb agreement"
+                    },
+                    {
+                      "id": "sat.rw.sec.form.pronoun_antecedent",
+                      "name": "Pronoun-antecedent agreement"
+                    },
+                    {
+                      "id": "sat.rw.sec.form.finiteness",
+                      "name": "Verb finiteness"
+                    },
+                    {
+                      "id": "sat.rw.sec.form.tense_aspect",
+                      "name": "Verb tense and aspect"
+                    },
+                    {
+                      "id": "sat.rw.sec.form.modifier",
+                      "name": "Subject-modifier placement"
+                    },
+                    {
+                      "id": "sat.rw.sec.form.genitives_plurals",
+                      "name": "Genitives and plurals"
+                    }
+                  ]
+                }
               ]
             }
           ]
@@ -66,58 +167,153 @@
           "id": "sat.math",
           "name": "Math",
           "questions": 44,
+          "scored": 40,
           "minutes": 70,
           "modules": 2,
+          "inContext": 0.3,
           "domains": [
             {
               "id": "sat.math.alg",
               "name": "Algebra",
               "weight": 0.35,
-              "questions": [13, 15],
+              "questions": [
+                13,
+                15
+              ],
+              "formatMix": {
+                "spr": [
+                  3,
+                  4
+                ]
+              },
               "skills": [
-                { "id": "sat.math.alg.lin1", "name": "Linear equations in one variable" },
-                { "id": "sat.math.alg.lin2", "name": "Linear equations in two variables" },
-                { "id": "sat.math.alg.linfn", "name": "Linear functions" },
-                { "id": "sat.math.alg.systems", "name": "Systems of two linear equations in two variables" },
-                { "id": "sat.math.alg.ineq", "name": "Linear inequalities in one or two variables" }
+                {
+                  "id": "sat.math.alg.lin1",
+                  "name": "Linear equations in one variable"
+                },
+                {
+                  "id": "sat.math.alg.lin2",
+                  "name": "Linear equations in two variables"
+                },
+                {
+                  "id": "sat.math.alg.linfn",
+                  "name": "Linear functions"
+                },
+                {
+                  "id": "sat.math.alg.systems",
+                  "name": "Systems of two linear equations in two variables"
+                },
+                {
+                  "id": "sat.math.alg.ineq",
+                  "name": "Linear inequalities in one or two variables"
+                }
               ]
             },
             {
               "id": "sat.math.adv",
               "name": "Advanced Math",
               "weight": 0.35,
-              "questions": [13, 15],
+              "questions": [
+                13,
+                15
+              ],
+              "formatMix": {
+                "spr": [
+                  3,
+                  4
+                ]
+              },
               "skills": [
-                { "id": "sat.math.adv.equiv", "name": "Equivalent expressions" },
-                { "id": "sat.math.adv.nonlineq", "name": "Nonlinear equations in one variable and systems of equations in two variables" },
-                { "id": "sat.math.adv.nonlinfn", "name": "Nonlinear functions" }
+                {
+                  "id": "sat.math.adv.equiv",
+                  "name": "Equivalent expressions"
+                },
+                {
+                  "id": "sat.math.adv.nonlineq",
+                  "name": "Nonlinear equations in one variable and systems of equations in two variables"
+                },
+                {
+                  "id": "sat.math.adv.nonlinfn",
+                  "name": "Nonlinear functions"
+                }
               ]
             },
             {
               "id": "sat.math.psda",
               "name": "Problem-Solving and Data Analysis",
               "weight": 0.15,
-              "questions": [5, 7],
+              "questions": [
+                5,
+                7
+              ],
+              "formatMix": {
+                "spr": [
+                  1,
+                  2
+                ]
+              },
               "skills": [
-                { "id": "sat.math.psda.ratios", "name": "Ratios, rates, proportional relationships, and units" },
-                { "id": "sat.math.psda.percent", "name": "Percentages" },
-                { "id": "sat.math.psda.onevar", "name": "One-variable data: distributions and measures of center and spread" },
-                { "id": "sat.math.psda.twovar", "name": "Two-variable data: models and scatterplots" },
-                { "id": "sat.math.psda.prob", "name": "Probability and conditional probability" },
-                { "id": "sat.math.psda.inference", "name": "Inference from sample statistics and margin of error" },
-                { "id": "sat.math.psda.claims", "name": "Evaluating statistical claims: observational studies and experiments" }
+                {
+                  "id": "sat.math.psda.ratios",
+                  "name": "Ratios, rates, proportional relationships, and units"
+                },
+                {
+                  "id": "sat.math.psda.percent",
+                  "name": "Percentages"
+                },
+                {
+                  "id": "sat.math.psda.onevar",
+                  "name": "One-variable data: distributions and measures of center and spread"
+                },
+                {
+                  "id": "sat.math.psda.twovar",
+                  "name": "Two-variable data: models and scatterplots"
+                },
+                {
+                  "id": "sat.math.psda.prob",
+                  "name": "Probability and conditional probability"
+                },
+                {
+                  "id": "sat.math.psda.inference",
+                  "name": "Inference from sample statistics and margin of error"
+                },
+                {
+                  "id": "sat.math.psda.claims",
+                  "name": "Evaluating statistical claims: observational studies and experiments"
+                }
               ]
             },
             {
               "id": "sat.math.geo",
               "name": "Geometry and Trigonometry",
               "weight": 0.15,
-              "questions": [5, 7],
+              "questions": [
+                5,
+                7
+              ],
+              "formatMix": {
+                "spr": [
+                  1,
+                  2
+                ]
+              },
               "skills": [
-                { "id": "sat.math.geo.area", "name": "Area and volume" },
-                { "id": "sat.math.geo.lines", "name": "Lines, angles, and triangles" },
-                { "id": "sat.math.geo.trig", "name": "Right triangles and trigonometry" },
-                { "id": "sat.math.geo.circles", "name": "Circles" }
+                {
+                  "id": "sat.math.geo.area",
+                  "name": "Area and volume"
+                },
+                {
+                  "id": "sat.math.geo.lines",
+                  "name": "Lines, angles, and triangles"
+                },
+                {
+                  "id": "sat.math.geo.trig",
+                  "name": "Right triangles and trigonometry"
+                },
+                {
+                  "id": "sat.math.geo.circles",
+                  "name": "Circles"
+                }
               ]
             }
           ]
@@ -127,57 +323,497 @@
     {
       "id": "act",
       "name": "ACT (enhanced)",
-      "scale": { "min": 1, "max": 36 },
-      "compositeSections": ["act.eng", "act.math", "act.read"],
+      "scale": {
+        "min": 1,
+        "max": 36
+      },
+      "compositeSections": [
+        "act.eng",
+        "act.math",
+        "act.read"
+      ],
       "sections": [
         {
           "id": "act.eng",
           "name": "English",
           "questions": 50,
+          "scored": 40,
           "minutes": 35,
           "domains": [
-            { "id": "act.eng.pow", "name": "Production of Writing", "weight": 0.405, "skills": [{ "id": "act.eng.pow", "name": "Production of Writing" }] },
-            { "id": "act.eng.kol", "name": "Knowledge of Language", "weight": 0.205, "skills": [{ "id": "act.eng.kol", "name": "Knowledge of Language" }] },
-            { "id": "act.eng.cse", "name": "Conventions of Standard English", "weight": 0.405, "skills": [{ "id": "act.eng.cse", "name": "Conventions of Standard English" }] }
+            {
+              "id": "act.eng.pow",
+              "name": "Production of Writing",
+              "weight": 0.4,
+              "questions": [
+                15,
+                17
+              ],
+              "skills": [
+                {
+                  "id": "act.eng.pow.topic",
+                  "name": "Topic Development"
+                },
+                {
+                  "id": "act.eng.pow.org",
+                  "name": "Organization, Unity, and Cohesion"
+                }
+              ]
+            },
+            {
+              "id": "act.eng.kol",
+              "name": "Knowledge of Language",
+              "weight": 0.2,
+              "questions": [
+                7,
+                9
+              ],
+              "skills": [
+                {
+                  "id": "act.eng.kol.clarity",
+                  "name": "Expressing Ideas Clearly"
+                },
+                {
+                  "id": "act.eng.kol.style",
+                  "name": "Style and Tone"
+                }
+              ]
+            },
+            {
+              "id": "act.eng.cse",
+              "name": "Conventions of Standard English",
+              "weight": 0.4,
+              "questions": [
+                15,
+                17
+              ],
+              "skills": [
+                {
+                  "id": "act.eng.cse.structure",
+                  "name": "Sentence Structure and Formation"
+                },
+                {
+                  "id": "act.eng.cse.usage",
+                  "name": "Usage Conventions"
+                },
+                {
+                  "id": "act.eng.cse.punct",
+                  "name": "Punctuation Conventions"
+                }
+              ]
+            }
           ]
         },
         {
           "id": "act.math",
           "name": "Math",
           "questions": 45,
+          "scored": 41,
           "minutes": 50,
-          "notes": "Preparing for Higher Math (80%) = nq/alg/fn/geo/sp; Integrating Essential Skills is the other 20%. Modeling (>=20%) is a cross-cutting tag applied on top of a skill.",
-          "crossTags": ["act.math.modeling"],
+          "inContext": 0.27,
+          "notes": "Preparing for Higher Math (33 scored) = nq/alg/fn/geo/sp; Integrating Essential Skills is 8. Modeling (>=8 items) is a cross-cutting tag applied on top of a skill. In-context share is 24-29%. IES skill grouping is ours (R2519 lists 13 topics).",
+          "crossTags": [
+            "act.math.modeling"
+          ],
           "domains": [
-            { "id": "act.math.nq", "name": "Number & Quantity", "weight": 0.11, "skills": [{ "id": "act.math.nq", "name": "Number & Quantity" }] },
-            { "id": "act.math.alg", "name": "Algebra", "weight": 0.185, "skills": [{ "id": "act.math.alg", "name": "Algebra" }] },
-            { "id": "act.math.fn", "name": "Functions", "weight": 0.185, "skills": [{ "id": "act.math.fn", "name": "Functions" }] },
-            { "id": "act.math.geo", "name": "Geometry", "weight": 0.185, "skills": [{ "id": "act.math.geo", "name": "Geometry" }] },
-            { "id": "act.math.sp", "name": "Statistics & Probability", "weight": 0.135, "skills": [{ "id": "act.math.sp", "name": "Statistics & Probability" }] },
-            { "id": "act.math.ies", "name": "Integrating Essential Skills", "weight": 0.2, "skills": [{ "id": "act.math.ies", "name": "Integrating Essential Skills" }] }
+            {
+              "id": "act.math.nq",
+              "name": "Number & Quantity",
+              "weight": 0.11,
+              "questions": [
+                4,
+                5
+              ],
+              "skills": [
+                {
+                  "id": "act.math.nq.real",
+                  "name": "Rational and irrational numbers"
+                },
+                {
+                  "id": "act.math.nq.exponents",
+                  "name": "Exponents and radicals"
+                },
+                {
+                  "id": "act.math.nq.vectors_matrices",
+                  "name": "Vectors and matrices"
+                },
+                {
+                  "id": "act.math.nq.complex",
+                  "name": "Complex numbers"
+                },
+                {
+                  "id": "act.math.nq.units",
+                  "name": "Quantities and units"
+                }
+              ]
+            },
+            {
+              "id": "act.math.alg",
+              "name": "Algebra",
+              "weight": 0.185,
+              "questions": [
+                7,
+                8
+              ],
+              "skills": [
+                {
+                  "id": "act.math.alg.linear",
+                  "name": "Linear expressions, equations, and inequalities"
+                },
+                {
+                  "id": "act.math.alg.quadratic",
+                  "name": "Quadratic expressions and equations"
+                },
+                {
+                  "id": "act.math.alg.polynomial",
+                  "name": "Polynomial expressions and equations"
+                },
+                {
+                  "id": "act.math.alg.rational_radical",
+                  "name": "Rational and radical expressions and equations"
+                },
+                {
+                  "id": "act.math.alg.systems",
+                  "name": "Systems of equations and inequalities"
+                },
+                {
+                  "id": "act.math.alg.equiv",
+                  "name": "Equivalent forms"
+                }
+              ]
+            },
+            {
+              "id": "act.math.fn",
+              "name": "Functions",
+              "weight": 0.185,
+              "questions": [
+                7,
+                8
+              ],
+              "skills": [
+                {
+                  "id": "act.math.fn.properties",
+                  "name": "Function properties"
+                },
+                {
+                  "id": "act.math.fn.transform",
+                  "name": "Composition, transformations, and inverses"
+                },
+                {
+                  "id": "act.math.fn.sequences",
+                  "name": "Sequences and series"
+                },
+                {
+                  "id": "act.math.fn.trig",
+                  "name": "Trigonometric functions"
+                },
+                {
+                  "id": "act.math.fn.explog",
+                  "name": "Exponential and logarithmic functions"
+                }
+              ]
+            },
+            {
+              "id": "act.math.geo",
+              "name": "Geometry",
+              "weight": 0.185,
+              "questions": [
+                7,
+                8
+              ],
+              "skills": [
+                {
+                  "id": "act.math.geo.transform",
+                  "name": "Transformations"
+                },
+                {
+                  "id": "act.math.geo.proof",
+                  "name": "Proof, reasoning, and constructions"
+                },
+                {
+                  "id": "act.math.geo.similarity_trig",
+                  "name": "Similarity, right triangles, and trigonometry"
+                },
+                {
+                  "id": "act.math.geo.coordinate",
+                  "name": "Coordinate geometry"
+                },
+                {
+                  "id": "act.math.geo.conics",
+                  "name": "Conic sections"
+                },
+                {
+                  "id": "act.math.geo.circles",
+                  "name": "Circles"
+                },
+                {
+                  "id": "act.math.geo.measurement",
+                  "name": "Geometric measurement and modeling"
+                }
+              ]
+            },
+            {
+              "id": "act.math.sp",
+              "name": "Statistics & Probability",
+              "weight": 0.135,
+              "questions": [
+                5,
+                6
+              ],
+              "skills": [
+                {
+                  "id": "act.math.sp.data",
+                  "name": "Univariate and bivariate data"
+                },
+                {
+                  "id": "act.math.sp.inference",
+                  "name": "Margin of error and simulation"
+                },
+                {
+                  "id": "act.math.sp.prob",
+                  "name": "Probability rules"
+                },
+                {
+                  "id": "act.math.sp.counting",
+                  "name": "Counting, permutations, and combinations"
+                }
+              ]
+            },
+            {
+              "id": "act.math.ies",
+              "name": "Integrating Essential Skills",
+              "weight": 0.2,
+              "questions": [
+                8,
+                8
+              ],
+              "skills": [
+                {
+                  "id": "act.math.ies.number",
+                  "name": "Real-number properties and computation"
+                },
+                {
+                  "id": "act.math.ies.ratio",
+                  "name": "Ratio, proportion, and percent"
+                },
+                {
+                  "id": "act.math.ies.expressions",
+                  "name": "Expressions, simple equations, and inequalities"
+                },
+                {
+                  "id": "act.math.ies.units",
+                  "name": "Units and conversion"
+                },
+                {
+                  "id": "act.math.ies.geometry",
+                  "name": "Lines, angles, shapes, area, and volume"
+                },
+                {
+                  "id": "act.math.ies.data",
+                  "name": "Data displays, informal inference, and basic probability"
+                }
+              ]
+            }
           ]
         },
         {
           "id": "act.read",
           "name": "Reading",
           "questions": 36,
+          "scored": 27,
           "minutes": 40,
           "domains": [
-            { "id": "act.read.kid", "name": "Key Ideas and Details", "weight": 0.48, "skills": [{ "id": "act.read.kid", "name": "Key Ideas and Details" }] },
-            { "id": "act.read.cs", "name": "Craft and Structure", "weight": 0.295, "skills": [{ "id": "act.read.cs", "name": "Craft and Structure" }] },
-            { "id": "act.read.iki", "name": "Integration of Knowledge and Ideas", "weight": 0.225, "skills": [{ "id": "act.read.iki", "name": "Integration of Knowledge and Ideas" }] }
+            {
+              "id": "act.read.kid",
+              "name": "Key Ideas and Details",
+              "weight": 0.48,
+              "questions": [
+                12,
+                14
+              ],
+              "skills": [
+                {
+                  "id": "act.read.kid.close",
+                  "name": "Close Reading"
+                },
+                {
+                  "id": "act.read.kid.relationships",
+                  "name": "Relationships"
+                },
+                {
+                  "id": "act.read.kid.central",
+                  "name": "Central Ideas, Themes, and Summaries"
+                }
+              ]
+            },
+            {
+              "id": "act.read.cs",
+              "name": "Craft and Structure",
+              "weight": 0.295,
+              "questions": [
+                7,
+                9
+              ],
+              "skills": [
+                {
+                  "id": "act.read.cs.words",
+                  "name": "Word Meanings and Word Choice"
+                },
+                {
+                  "id": "act.read.cs.structure",
+                  "name": "Text Structure"
+                },
+                {
+                  "id": "act.read.cs.purpose",
+                  "name": "Purpose and Point of View"
+                }
+              ]
+            },
+            {
+              "id": "act.read.iki",
+              "name": "Integration of Knowledge and Ideas",
+              "weight": 0.225,
+              "questions": [
+                5,
+                7
+              ],
+              "skills": [
+                {
+                  "id": "act.read.iki.arguments",
+                  "name": "Arguments"
+                },
+                {
+                  "id": "act.read.iki.synthesis",
+                  "name": "Synthesis of Multiple Texts"
+                },
+                {
+                  "id": "act.read.iki.vqi",
+                  "name": "Visual and Quantitative Information"
+                }
+              ]
+            }
           ]
         },
         {
           "id": "act.sci",
           "name": "Science (optional)",
           "questions": 40,
+          "scored": 34,
           "minutes": 40,
           "optional": true,
+          "notes": "Passage formats from the 2025-26 student guide; R2519 initial blueprint runs slightly higher on DR. Models subskills are used only with Conflicting Viewpoints passages.",
+          "formats": [
+            {
+              "id": "act.sci.dr",
+              "name": "Data Representation",
+              "share": [
+                0.26,
+                0.32
+              ]
+            },
+            {
+              "id": "act.sci.rs",
+              "name": "Research Summaries",
+              "share": [
+                0.5,
+                0.56
+              ]
+            },
+            {
+              "id": "act.sci.cv",
+              "name": "Conflicting Viewpoints",
+              "share": [
+                0.18,
+                0.21
+              ]
+            }
+          ],
+          "crossTags": [
+            "act.sci.edt"
+          ],
           "domains": [
-            { "id": "act.sci.iod", "name": "Interpretation of Data", "weight": 0.44, "skills": [{ "id": "act.sci.iod", "name": "Interpretation of Data" }] },
-            { "id": "act.sci.si", "name": "Scientific Investigation", "weight": 0.25, "skills": [{ "id": "act.sci.si", "name": "Scientific Investigation" }] },
-            { "id": "act.sci.esam", "name": "Evaluating Scientific Arguments and Models with Evidence", "weight": 0.31, "skills": [{ "id": "act.sci.esam", "name": "Evaluating Scientific Arguments and Models with Evidence" }] }
+            {
+              "id": "act.sci.iod",
+              "name": "Interpretation of Data",
+              "weight": 0.44,
+              "questions": [
+                13,
+                17
+              ],
+              "skills": [
+                {
+                  "id": "act.sci.iod.locate",
+                  "name": "Locating and Understanding"
+                },
+                {
+                  "id": "act.sci.iod.infer",
+                  "name": "Inferring and Translating"
+                },
+                {
+                  "id": "act.sci.iod.extend",
+                  "name": "Extending and Reevaluating"
+                }
+              ]
+            },
+            {
+              "id": "act.sci.sin",
+              "name": "Scientific Investigation",
+              "weight": 0.25,
+              "questions": [
+                6,
+                11
+              ],
+              "skills": [
+                {
+                  "id": "act.sci.sin.locate",
+                  "name": "Locating and Comparing"
+                },
+                {
+                  "id": "act.sci.sin.design",
+                  "name": "Designing and Implementing"
+                },
+                {
+                  "id": "act.sci.sin.extend",
+                  "name": "Extending and Implementing"
+                },
+                {
+                  "id": "act.sci.sin.edt",
+                  "name": "Engineering and Design"
+                }
+              ]
+            },
+            {
+              "id": "act.sci.eam",
+              "name": "Evaluating Scientific Arguments and Models with Evidence",
+              "weight": 0.31,
+              "questions": [
+                8,
+                13
+              ],
+              "skills": [
+                {
+                  "id": "act.sci.eam.results",
+                  "name": "Inferences and Results"
+                },
+                {
+                  "id": "act.sci.eam.models_compare",
+                  "name": "Models: Understanding and Comparing",
+                  "formats": [
+                    "act.sci.cv"
+                  ]
+                },
+                {
+                  "id": "act.sci.eam.models_extend",
+                  "name": "Models: Evaluating and Extending",
+                  "formats": [
+                    "act.sci.cv"
+                  ]
+                },
+                {
+                  "id": "act.sci.eam.edt",
+                  "name": "Engineering and Design Thinking"
+                }
+              ]
+            }
           ]
         }
       ]

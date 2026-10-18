@@ -2,25 +2,30 @@ import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import type { CompleteLessonRequest, CompleteLessonResponse } from '@shared/api';
 import { isCorrect } from '@shared/grading';
+import { buildPath, findNode, legendarySeconds } from '@shared/progression/path';
+import { strategyCard, type StrategyCard } from '@shared/progression/strategy';
 import { dayKey } from '@shared/progression/streak';
 import type { Question, TestId } from '@shared/types';
 
 import { GameButton } from '@/components/game-button';
 import { MathText } from '@/components/math-text';
+import { QuestionView } from '@/components/question-view';
 import { Brand } from '@/constants/theme';
 import { completeLesson, setBookmark } from '@/data/api';
 import { buildLesson } from '@/data/lesson';
 import { useTheme } from '@/hooks/use-theme';
+import { newLine, setCalc } from '@/state/calculator';
 import { useSession } from '@/state/session';
 
 type Kind = CompleteLessonRequest['kind'];
-const LEGENDARY_SECONDS_PER_Q = 75;
+/** Sections where the real test offers a graphing calculator (SAT: every Math item; ACT: online Math). */
+const CALCULATOR_SECTIONS = new Set(['sat.math', 'act.math']);
 const CHECKPOINT_MAX_MISSES = 3;
 
 export default function LessonScreen() {
@@ -39,13 +44,18 @@ export default function LessonScreen() {
   const answers = useRef<CompleteLessonRequest['answers']>([]);
   const shownAt = useRef(Date.now());
   const misses = useRef(0);
+  const card = kind === 'lesson' ? strategyCard(nodeId) : null;
+  const [showCard, setShowCard] = useState(!!card);
 
   // Build the lesson once.
   useEffect(() => {
     buildLesson(test, nodeId, kind, progress).then((picked) => {
       setQueue(picked);
       setTotal(picked.length);
-      if (kind === 'legendary') setSecondsLeft(picked.length * LEGENDARY_SECONDS_PER_Q);
+      if (kind === 'legendary') {
+        const found = findNode(buildPath(test), nodeId);
+        if (found) setSecondsLeft(legendarySeconds(found.node, picked.length));
+      }
       shownAt.current = Date.now();
     });
     // Progress snapshot at lesson start is intentional; don't rebuild mid-lesson.
@@ -87,6 +97,7 @@ export default function LessonScreen() {
       </Centered>
     );
   }
+  if (card && showCard) return <TrickCard card={card} onStart={() => setShowCard(false)} />;
   if (result) return <Summary result={result} kind={kind} />;
   if (queue.length === 0) {
     return (
@@ -147,6 +158,11 @@ export default function LessonScreen() {
           <SymbolView name="xmark" tintColor={theme.textSecondary} size={22} />
         </Pressable>
         <ProgressBar value={done / total} />
+        {CALCULATOR_SECTIONS.has(q.sectionId) && (
+          <Pressable onPress={() => router.push('/calculator')} hitSlop={12} accessibilityLabel="Open calculator">
+            <SymbolView name="function" tintColor={Brand.primary} size={22} />
+          </Pressable>
+        )}
         {secondsLeft !== null ? (
           <Text style={[styles.timer, { color: secondsLeft < 30 ? Brand.wrong : theme.text }]}>
             {Math.floor(secondsLeft / 60)}:{String(secondsLeft % 60).padStart(2, '0')}
@@ -165,34 +181,7 @@ export default function LessonScreen() {
       )}
 
       <ScrollView contentContainerStyle={styles.body}>
-        {q.stimulus && (
-          <View style={[styles.stimulus, { borderColor: theme.backgroundSelected }]}>
-            <MathText>{q.stimulus}</MathText>
-          </View>
-        )}
-        <MathText style={{ fontSize: 18, fontWeight: '600' }}>{q.stem}</MathText>
-
-        {q.choices ? (
-          q.choices.map((c, i) => (
-            <Choice
-              key={i}
-              label={String.fromCharCode(65 + i)}
-              text={c}
-              selected={response === i}
-              status={checked === null ? null : i === q.answer ? 'correct' : response === i ? 'wrong' : null}
-              onPress={() => checked === null && setResponse(i)}
-            />
-          ))
-        ) : (
-          <TextInput
-            editable={checked === null}
-            value={typeof response === 'string' ? response : ''}
-            onChangeText={(t) => setResponse(t || null)}
-            placeholder="Your answer"
-            keyboardType="numbers-and-punctuation"
-            style={[styles.gridIn, { color: theme.text, borderColor: theme.backgroundSelected }]}
-          />
-        )}
+        <QuestionView q={q} response={response} onResponse={setResponse} checked={checked} />
       </ScrollView>
 
       {checked === null ? (
@@ -206,6 +195,43 @@ export default function LessonScreen() {
   );
 }
 
+/** Strategy-unit intro: the trick, when to use it, and a preloaded calculator example. */
+function TrickCard({ card, onStart }: { card: StrategyCard; onStart: () => void }) {
+  const theme = useTheme();
+  const tryIt = () => {
+    setCalc((st) => ({ ...st, lines: card.example.map((t) => newLine(t)) }));
+    router.push('/calculator');
+  };
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
+      <View style={styles.top}>
+        <Pressable onPress={() => router.back()} hitSlop={12}>
+          <SymbolView name="xmark" tintColor={theme.textSecondary} size={22} />
+        </Pressable>
+      </View>
+      <ScrollView contentContainerStyle={[styles.body, { paddingHorizontal: 24 }]}>
+        <Text style={[styles.kicker, { color: Brand.primary }]}>CALCULATOR TRICK</Text>
+        <Text style={[styles.cardTitle, { color: theme.text }]}>{card.title}</Text>
+        <Text style={{ color: theme.textSecondary, fontSize: 16, lineHeight: 22 }}>{card.when}</Text>
+        {card.steps.map((step, i) => (
+          <View key={i} style={styles.step}>
+            <Text style={[styles.stepNum, { color: Brand.primary }]}>{i + 1}</Text>
+            <Text style={{ color: theme.text, fontSize: 16, lineHeight: 22, flex: 1 }}>{step}</Text>
+          </View>
+        ))}
+        <View style={[styles.watch, { borderColor: Brand.flame }]}>
+          <Text style={{ color: Brand.flame, fontWeight: '800', marginBottom: 4 }}>Watch out</Text>
+          <Text style={{ color: theme.text, fontSize: 15, lineHeight: 21 }}>{card.watchOut}</Text>
+        </View>
+      </ScrollView>
+      <View style={[styles.footer, { gap: 10 }]}>
+        <GameButton title="Try it in the calculator" variant="locked" onPress={tryIt} />
+        <GameButton title="Start practice" onPress={onStart} />
+      </View>
+    </SafeAreaView>
+  );
+}
+
 function ProgressBar({ value }: { value: number }) {
   const theme = useTheme();
   const fill = useAnimatedStyle(() => ({ width: withTiming(`${Math.max(4, value * 100)}%`) }));
@@ -213,33 +239,6 @@ function ProgressBar({ value }: { value: number }) {
     <View style={[styles.track, { backgroundColor: theme.backgroundSelected }]}>
       <Animated.View style={[styles.fill, fill]} />
     </View>
-  );
-}
-
-function Choice({
-  label,
-  text,
-  selected,
-  status,
-  onPress,
-}: {
-  label: string;
-  text: string;
-  selected: boolean;
-  status: 'correct' | 'wrong' | null;
-  onPress: () => void;
-}) {
-  const theme = useTheme();
-  const border = status === 'correct' ? Brand.correct : status === 'wrong' ? Brand.wrong : selected ? Brand.primary : theme.backgroundSelected;
-  return (
-    <Pressable onPress={onPress} style={[styles.choice, { borderColor: border, borderBottomWidth: 4 }]}>
-      <View style={[styles.choiceLabel, { borderColor: border }]}>
-        <Text style={{ color: border === theme.backgroundSelected ? theme.textSecondary : border, fontWeight: '800' }}>{label}</Text>
-      </View>
-      <View style={{ flex: 1 }}>
-        <MathText>{text}</MathText>
-      </View>
-    </Pressable>
   );
 }
 
@@ -306,11 +305,12 @@ const styles = StyleSheet.create({
   timer: { fontWeight: '800', fontVariant: ['tabular-nums'] },
   combo: { textAlign: 'center', color: Brand.flame, fontWeight: '800', letterSpacing: 1 },
   body: { padding: 16, gap: 12, paddingBottom: 40 },
-  stimulus: { borderWidth: 2, borderRadius: 14, padding: 12 },
-  choice: { flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 2, borderRadius: 14, padding: 12 },
-  choiceLabel: { width: 30, height: 30, borderRadius: 8, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
-  gridIn: { borderWidth: 2, borderRadius: 14, padding: 14, fontSize: 20, fontWeight: '700' },
   footer: { padding: 16 },
+  kicker: { fontWeight: '800', letterSpacing: 0.5, fontSize: 13 },
+  cardTitle: { fontSize: 28, fontWeight: '800' },
+  step: { flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
+  stepNum: { fontSize: 18, fontWeight: '800', width: 18 },
+  watch: { borderWidth: 2, borderRadius: 14, padding: 14, marginTop: 6 },
   feedback: { padding: 16, paddingBottom: 28, borderTopLeftRadius: 20, borderTopRightRadius: 20 },
   feedbackHead: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
   feedbackTitle: { fontSize: 22, fontWeight: '800' },

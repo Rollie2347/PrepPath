@@ -11,7 +11,16 @@ export const BANK = path.resolve(here, '..', 'bank', 'questions.jsonl');
 
 export interface BankRow extends Question {
   /** Pipeline notes: verifier verdicts, rejection reasons. Stripped before publish. */
-  pipeline?: { verifiedAnswer?: number | string; notes?: string[]; generatedAt?: string; model?: string };
+  pipeline?: {
+    verifiedAnswer?: number | string;
+    notes?: string[];
+    generatedAt?: string;
+    model?: string;
+    /** What proves the key (span, cell or step), from the generator. */
+    governingClue?: string;
+    /** "B errorCode: why it tempts" per wrong choice. */
+    distractorRationale?: string[];
+  };
 }
 
 export function readBank(): BankRow[] {
@@ -26,6 +35,13 @@ export function readBank(): BankRow[] {
 export function writeBank(rows: BankRow[]) {
   fs.mkdirSync(path.dirname(BANK), { recursive: true });
   fs.writeFileSync(BANK, rows.map((r) => JSON.stringify(r)).join('\n') + '\n');
+}
+
+/** Appends rows without rewriting the file, so parallel generate runs cannot clobber each other. */
+export function appendBank(rows: BankRow[]) {
+  if (!rows.length) return;
+  fs.mkdirSync(path.dirname(BANK), { recursive: true });
+  fs.appendFileSync(BANK, rows.map((r) => JSON.stringify(r)).join('\n') + '\n');
 }
 
 export function arg(name: string): string | undefined {

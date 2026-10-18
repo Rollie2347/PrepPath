@@ -1,3 +1,4 @@
+import type { DiagnosticResult } from './adaptive/diagnostic';
 import type { SkillMastery } from './adaptive/elo';
 import type { NodeProgress } from './progression/path';
 import type { Streak } from './progression/streak';
@@ -14,6 +15,8 @@ export interface UserDoc {
   dailyXpGoal: number;
   timezoneOffsetMin: number;
   onboarded: boolean;
+  /** League members this user reported or blocked; hidden from their leaderboard. */
+  blocked?: string[];
   game: {
     xp: number;
     gems: number;
@@ -33,6 +36,8 @@ export interface ProgressDoc {
   /** Question ids missed and not yet answered correctly since. */
   mistakes: string[];
   recent: string[];
+  /** Onboarding diagnostic per test, written by completeDiagnostic. */
+  diagnostic?: Partial<Record<TestId, DiagnosticResult>>;
 }
 
 export const AVATARS = ['🦊', '🐼', '🦉', '🐯', '🐸', '🐙', '🦄', '🐧', '🦁', '🐨', '🐢', '🦖'];

@@ -32,6 +32,9 @@ function RootStack() {
       <Stack.Protected guard={onboarded}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="lesson/[nodeId]" options={{ presentation: 'fullScreenModal', gestureEnabled: false }} />
+        <Stack.Screen name="diagnostic/[test]" options={{ presentation: 'fullScreenModal', gestureEnabled: false }} />
+        {/* Sheet swipe-to-dismiss would fight graph panning, so it closes with its X. */}
+        <Stack.Screen name="calculator" options={{ presentation: 'modal', gestureEnabled: false }} />
         <Stack.Screen name="chest/[nodeId]" options={{ presentation: 'transparentModal', animation: 'fade' }} />
       </Stack.Protected>
       <Stack.Protected guard={!onboarded}>

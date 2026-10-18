@@ -59,3 +59,13 @@ example
 
 # local Claude Code settings
 .claude/settings.local.json
+
+# Research notes and reports (local only)
+/research_notes/
+/reports/
+
+# Firebase emulator exports (contain emulator auth data)
+firebase-export-*/
+
+# Firebase deploy cache
+.firebase/

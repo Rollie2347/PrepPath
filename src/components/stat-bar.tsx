@@ -14,8 +14,9 @@ export function StatBar({ profile, onSwitchTest }: { profile: UserDoc; onSwitchT
 
   return (
     <View style={[styles.row, { borderBottomColor: theme.backgroundSelected }]}>
-      <Pressable onPress={onSwitchTest} style={[styles.test, { borderColor: testColor }]}>
+      <Pressable onPress={onSwitchTest} style={[styles.test, { borderColor: testColor }]} accessibilityLabel="Switch test">
         <Text style={[styles.testText, { color: testColor }]}>{profile.activeTest.toUpperCase()}</Text>
+        <SymbolView name="chevron.down" tintColor={testColor} size={12} weight="bold" />
       </Pressable>
       <Stat icon="flame.fill" color={streak.count > 0 ? Brand.flame : Brand.locked} value={streak.count} />
       <Stat icon="diamond.fill" color={Brand.gem} value={gems} />
@@ -42,7 +43,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderBottomWidth: 2,
   },
-  test: { borderWidth: 2, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 4 },
+  test: { flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: 2, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 4 },
   testText: { fontWeight: 800 },
   stat: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   value: { fontWeight: 800, fontSize: 16 },

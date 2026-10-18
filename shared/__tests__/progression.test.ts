@@ -1,5 +1,5 @@
 import { settleCohort, nextTier, weekId, TIERS } from '../progression/league';
-import { applyCheckpoint, buildPath, currentNode } from '../progression/path';
+import { applyCheckpoint, buildPath, currentNode, isUnlocked } from '../progression/path';
 import { addFreeze, creditGoal, newStreak, settle } from '../progression/streak';
 import { lessonXp, XP } from '../progression/xp';
 
@@ -96,8 +96,8 @@ describe('league', () => {
 });
 
 describe('path', () => {
-  it('covers every SAT skill and ends units with checkpoints', () => {
-    const units = buildPath('sat');
+  it('covers every SAT skill and ends domain units with checkpoints', () => {
+    const units = buildPath('sat').filter((u) => !u.opensWith);
     expect(units).toHaveLength(8);
     const skills = units.flatMap((u) => u.nodes.filter((n) => n.kind === 'skill'));
     expect(skills).toHaveLength(30); // 11 R&W + 19 Math testing points
@@ -113,5 +113,31 @@ describe('path', () => {
     expect(first).toBe(units[0].nodes[0].id);
     const after = applyCheckpoint(units[0], {});
     expect(currentNode(units, after)).toBe(units[1].nodes[0].id);
+  });
+});
+
+describe('strategy units', () => {
+  const units = buildPath('sat');
+  const calc = units.find((u) => u.id === 'sat.calc')!;
+
+  it('sit right after Algebra and never become the current node', () => {
+    expect(units[units.indexOf(calc) - 1].id).toBe('sat.math.alg');
+    expect(calc.nodes.every((n) => n.optional)).toBe(true);
+    const allBeforeDone = Object.fromEntries(
+      units.slice(0, units.indexOf(calc)).flatMap((u) => u.nodes).map((n) => [n.id, { level: 4, legendary: false }]),
+    );
+    expect(currentNode(units, allBeforeDone)).toBe(units[units.indexOf(calc) + 1].nodes[0].id);
+  });
+
+  it('unlock once the Algebra unit opens, without locking later progress', () => {
+    expect(isUnlocked(units, {}, calc.nodes[0].id)).toBe(false);
+    const p = applyCheckpoint(units[0], {});
+    expect(isUnlocked(units, p, calc.nodes[0].id)).toBe(true);
+  });
+
+  it('draw only on skills that exist', () => {
+    const real = new Set(buildPath('sat').concat(buildPath('act')).flatMap((u) => u.nodes.filter((n) => !n.optional).flatMap((n) => n.skillIds)));
+    for (const t of ['sat', 'act'] as const)
+      for (const u of buildPath(t).filter((x) => x.opensWith)) for (const n of u.nodes) for (const k of n.skillIds) expect(real.has(k)).toBe(true);
   });
 });

@@ -17,8 +17,13 @@ service cloud.firestore {
       // everything under `game` (XP, gems, streak, league) is server-owned.
       allow create, delete: if false;
       allow update: if isOwner(uid)
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['activeTest', 'dailyXpGoal', 'avatar'])
-        && request.resource.data.activeTest in resource.data.tests
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['activeTest', 'dailyXpGoal', 'avatar', 'tests', 'blocked'])
+        && (!('blocked' in request.resource.data) || (request.resource.data.blocked is list && request.resource.data.blocked.size() <= 500))
+        // Tests can be added from the switcher, never removed (progress for both is kept).
+        && ['sat', 'act'].hasAll(request.resource.data.tests)
+        && request.resource.data.tests.size() <= 2
+        && request.resource.data.tests.hasAll(resource.data.tests)
+        && request.resource.data.activeTest in request.resource.data.tests
         && request.resource.data.dailyXpGoal in [20, 50, 100, 150];
 
       // Progress: clients may only edit bookmarks; mastery/nodes/mistakes come from functions.

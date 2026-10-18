@@ -10,6 +10,6 @@
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["*.ts", "../../shared/**/*.ts"],
+  "include": ["*.ts", "../authored/*.ts", "../../shared/**/*.ts"],
   "exclude": ["../../shared/__tests__"]
 }

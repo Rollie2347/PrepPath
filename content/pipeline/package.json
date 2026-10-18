@@ -7,7 +7,8 @@
     "verify": "tsx --env-file=../../.env verify.ts",
     "review": "tsx --env-file=../../.env review.ts",
     "publish": "tsx --env-file=../../.env publish.ts",
-    "coverage": "tsx --env-file=../../.env coverage.ts"
+    "coverage": "tsx --env-file=../../.env coverage.ts",
+    "batch": "tsx --env-file=../../.env batch.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.134.0",

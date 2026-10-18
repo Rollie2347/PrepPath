@@ -1,5 +1,7 @@
-import { getTest } from '../taxonomy';
+import { getTest, secondsPerQuestion, sectionOfSkill } from '../taxonomy';
 import type { TestId } from '../types';
+
+import { STRATEGY_UNITS } from './strategy';
 
 export const LEVELS_PER_NODE = 4;
 export const QUESTIONS_PER_LESSON = 10;
@@ -14,6 +16,8 @@ export interface PathNode {
   title: string;
   /** Skills this node draws questions from. */
   skillIds: string[];
+  /** Strategy nodes sit outside the lock chain: they never become the current node. */
+  optional?: boolean;
 }
 
 export interface Unit {
@@ -21,6 +25,8 @@ export interface Unit {
   title: string;
   sectionName: string;
   nodes: PathNode[];
+  /** Optional (strategy) units open together with this node. */
+  opensWith?: string;
 }
 
 /**
@@ -29,6 +35,22 @@ export interface Unit {
  * skill nodes, a review node mid-way, a chest, and a checkpoint that allows jumping ahead.
  */
 export function buildPath(test: TestId): Unit[] {
+  const units = domainUnits(test);
+  for (const st of STRATEGY_UNITS[test]) {
+    const at = units.findIndex((u) => u.id === st.afterUnit);
+    if (at === -1) continue;
+    units.splice(at + 1, 0, {
+      id: st.id,
+      title: st.title,
+      sectionName: st.sectionName,
+      opensWith: units[at].nodes[0].id,
+      nodes: st.nodes.map((n) => ({ id: n.id, kind: 'skill', title: n.title, skillIds: n.skillIds, optional: true })),
+    });
+  }
+  return units;
+}
+
+function domainUnits(test: TestId): Unit[] {
   const spec = getTest(test);
   const perSection = spec.sections.map((s) => s.domains.map((d) => ({ s, d })));
   const order: { s: (typeof spec.sections)[number]; d: (typeof spec.sections)[number]['domains'][number] }[] = [];
@@ -59,6 +81,16 @@ export interface NodeProgress {
   legendary: boolean;
 }
 
+/**
+ * Legendary time limit at the real test's pace for the node's section (minutes ÷ items), so ACT
+ * English runs at 42 s per item and SAT Math at ~95 s. Rounded up to whole seconds.
+ */
+export function legendarySeconds(node: PathNode, count: number = LEGENDARY_QUESTIONS): number {
+  const section = sectionOfSkill(node.skillIds[0]);
+  if (!section) throw new Error(`Node ${node.id} has no section`);
+  return Math.ceil(count * secondsPerQuestion(section.id));
+}
+
 /** Difficulty band a node's current level draws from (level 0 → easiest). */
 export function levelDifficulty(level: number): [number, number] {
   const bands: [number, number][] = [
@@ -73,7 +105,7 @@ export function levelDifficulty(level: number): [number, number] {
 /** First node not yet started/finished — where the bouncing "Start" sits. */
 export function currentNode(units: Unit[], progress: Record<string, NodeProgress>): string | null {
   for (const u of units)
-    for (const n of u.nodes) if ((progress[n.id]?.level ?? 0) < 1) return n.id;
+    for (const n of u.nodes) if (!n.optional && (progress[n.id]?.level ?? 0) < 1) return n.id;
   return null;
 }
 
@@ -84,6 +116,11 @@ export function currentNode(units: Unit[], progress: Record<string, NodeProgress
 export function isUnlocked(units: Unit[], progress: Record<string, NodeProgress>, nodeId: string): boolean {
   const flat = units.flatMap((u) => u.nodes);
   const cur = currentNode(units, progress);
+  const optionalUnit = units.find((u) => u.opensWith && u.nodes.some((n) => n.id === nodeId));
+  if (optionalUnit) {
+    if (cur === null) return true;
+    return flat.findIndex((n) => n.id === optionalUnit.opensWith) <= flat.findIndex((n) => n.id === cur);
+  }
   if (cur === null) return flat.some((n) => n.id === nodeId);
   const idx = flat.findIndex((n) => n.id === nodeId);
   if (idx === -1) return false;

@@ -17,8 +17,13 @@ export interface Question {
   stem: string;
   /** Multiple choice. Omitted for SAT student-produced response (grid-in). */
   choices?: string[];
-  /** Index into choices for MC; accepted string forms for grid-in. */
+  /**
+   * MC: index into choices. SPR: every correct value as an integer, a/b or terminating decimal
+   * (one per distinct right answer; equivalent forms are accepted by the grader).
+   */
   answer: number | string[];
+  /** Why each wrong choice is tempting, as an error code from the skill pattern spec. */
+  distractors?: { index: number; errorType: string }[];
   explanation: string;
   source: { kind: 'generated' | 'open'; name: string; license: string; url?: string };
   reviewStatus: ReviewStatus;

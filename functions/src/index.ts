@@ -1,13 +1,19 @@
 import { initializeApp } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
 import { FieldValue, getFirestore, type DocumentReference } from 'firebase-admin/firestore';
 import { HttpsError, onCall } from 'firebase-functions/v2/https';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
+import { englishDataset, englishRecommendedTransformers, RegExpMatcher } from 'obscenity';
 
+import { scoreDiagnostic, seedMastery } from './shared/adaptive/diagnostic';
 import { newMastery, updateMastery } from './shared/adaptive/elo';
+import { predictScore } from './shared/adaptive/score';
 import {
   MAX_ANSWERS_PER_LESSON,
   MIN_MS_PER_ANSWER,
   SHOP_PRICES,
+  type CompleteDiagnosticRequest,
+  type CompleteDiagnosticResponse,
   type CompleteLessonRequest,
   type CompleteLessonResponse,
   type InitUserRequest,
@@ -23,6 +29,7 @@ import {
   findNode,
   isUnlocked,
   LEGENDARY_QUESTIONS,
+  legendarySeconds,
   LEVELS_PER_NODE,
   type NodeProgress,
 } from './shared/progression/path';
@@ -38,7 +45,8 @@ const db = getFirestore();
 
 const TESTS: TestId[] = ['sat', 'act'];
 const RECENT_KEEP = 150;
-const LEGENDARY_SECONDS_PER_Q = 75;
+/** Slack on the Legendary time limit for network and render latency. */
+const LEGENDARY_TIME_GRACE = 1.1;
 const CHECKPOINT_MAX_MISSES = 3;
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -49,6 +57,19 @@ function requireUid(auth: { uid: string } | undefined): string {
   if (!auth) throw new HttpsError('unauthenticated', 'Sign in first.');
   return auth.uid;
 }
+
+/** Display names are shown to strangers in leagues, so offensive ones are refused (App Store 1.2). */
+const nameMatcher = new RegExpMatcher({
+  ...englishDataset.build(),
+  ...englishRecommendedTransformers,
+  // Real names and words the dataset flags (checked against obscenity 0.4.6).
+  whitelistedTerms: ['dickson', 'dickens', 'dickinson', 'dickey', 'dickie', 'analise', 'analisa', 'penistone', 'hancock', 'cockburn', 'babcock', 'assaf', 'shitake', 'shiitake'],
+});
+/** Also checks with spaces and dots removed, so "f u c k" is caught. */
+const offensiveName = (name: string) => nameMatcher.hasMatch(name) || nameMatcher.hasMatch(name.replace(/[\s._-]+/g, ''));
+/** Distinct reporters that hide a name from leagues until someone reviews `reports/{uid}`. */
+const REPORTS_TO_HIDE = 2;
+const HIDDEN_NAME = 'Learner';
 
 function emptyProgress(): ProgressDoc {
   return { nodes: {}, mastery: {}, bookmarks: [], mistakes: [], recent: [] };
@@ -62,6 +83,7 @@ export const initUser = onCall<InitUserRequest>(async (req) => {
 
   const name = typeof d.displayName === 'string' ? d.displayName.trim() : '';
   if (name.length < 2 || name.length > 20) throw new HttpsError('invalid-argument', 'Name must be 2–20 characters.');
+  if (offensiveName(name)) throw new HttpsError('invalid-argument', 'Please choose a different name. Other players see it in leagues.');
   if (!Array.isArray(d.tests) || d.tests.length === 0 || d.tests.some((t) => !TESTS.includes(t)))
     throw new HttpsError('invalid-argument', 'Pick SAT, ACT, or both.');
   if (!d.tests.includes(d.activeTest)) throw new HttpsError('invalid-argument', 'Bad active test.');
@@ -164,7 +186,8 @@ export const completeLesson = onCall<CompleteLessonRequest>(async (req): Promise
 
   let passed = true;
   if (kind === 'legendary')
-    passed = graded.length >= LEGENDARY_QUESTIONS && misses === 0 && totalMs <= LEGENDARY_QUESTIONS * LEGENDARY_SECONDS_PER_Q * 1000 * 1.1;
+    passed = graded.length >= LEGENDARY_QUESTIONS && misses === 0 && !!found &&
+      totalMs <= legendarySeconds(found.node) * 1000 * LEGENDARY_TIME_GRACE;
   if (kind === 'checkpoint') passed = graded.length >= CHECKPOINT_QUESTIONS && misses <= CHECKPOINT_MAX_MISSES;
 
   let bestRun = 0;
@@ -302,6 +325,70 @@ export const completeLesson = onCall<CompleteLessonRequest>(async (req): Promise
   return result;
 });
 
+// ------------------------------------------------------- completeDiagnostic
+
+export const completeDiagnostic = onCall<CompleteDiagnosticRequest>(async (req): Promise<CompleteDiagnosticResponse> => {
+  const uid = requireUid(req.auth);
+  const { test, answers } = req.data;
+
+  if (!TESTS.includes(test)) throw new HttpsError('invalid-argument', 'Bad test.');
+  if (!Array.isArray(answers) || answers.length === 0 || answers.length > MAX_ANSWERS_PER_LESSON)
+    throw new HttpsError('invalid-argument', 'Bad answers.');
+  const ids = answers.map((a) => a.questionId);
+  if (new Set(ids).size !== ids.length) throw new HttpsError('invalid-argument', 'Duplicate question.');
+  const totalMs = answers.reduce((s, a) => s + (Number(a.timeMs) || 0), 0);
+  if (totalMs < answers.length * MIN_MS_PER_ANSWER) throw new HttpsError('failed-precondition', 'Answers came in too fast.');
+
+  const snaps = await db.getAll(...ids.map((id) => db.doc(`questions/${id}`)));
+  const questions = new Map<string, Question>();
+  for (const s of snaps) {
+    const q = s.data() as Question | undefined;
+    if (!q || q.reviewStatus !== 'approved' || q.test !== test) throw new HttpsError('invalid-argument', `Bad question ${s.id}.`);
+    questions.set(s.id, { ...q, id: s.id });
+  }
+  const graded = answers.map((a) => {
+    const q = questions.get(a.questionId)!;
+    return { questionId: q.id, skillId: q.skillId, difficulty: q.difficulty as Difficulty, correct: isCorrect(q, a.response), timeMs: a.timeMs };
+  });
+
+  const now = Date.now();
+  const result = scoreDiagnostic(test, graded, now);
+  const units = buildPath(test);
+
+  const response = await db.runTransaction(async (tx) => {
+    const [userSnap, progSnap] = await Promise.all([tx.get(userRef(uid)), tx.get(progressRef(uid))]);
+    if (!userSnap.data()?.onboarded) throw new HttpsError('failed-precondition', 'Finish onboarding first.');
+    const prog: ProgressDoc = { ...emptyProgress(), ...progSnap.data() };
+    if (prog.diagnostic?.[test]) throw new HttpsError('already-exists', 'Diagnostic already taken.');
+
+    const mastery = seedMastery(test, result, graded, prog.mastery);
+    let nodes = { ...prog.nodes };
+    for (const unitId of result.placedUnits) {
+      const unit = units.find((u) => u.id === unitId);
+      if (unit) nodes = applyCheckpoint(unit, nodes);
+    }
+    const mistakes = new Set(prog.mistakes);
+    for (const g of graded) if (!g.correct) mistakes.add(g.questionId);
+    const recent = [...prog.recent.filter((id) => !questions.has(id)), ...ids].slice(-RECENT_KEEP);
+
+    tx.set(progressRef(uid), {
+      ...prog,
+      mastery,
+      nodes,
+      mistakes: [...mistakes],
+      recent,
+      diagnostic: { ...prog.diagnostic, [test]: result },
+    });
+    return { result, estimate: predictScore(test, mastery) } satisfies CompleteDiagnosticResponse;
+  });
+
+  const batch = db.batch();
+  for (const g of graded) batch.set(db.collection(`users/${uid}/attempts`).doc(), { ...g, nodeId: 'diagnostic', kind: 'diagnostic', at: now });
+  await batch.commit();
+
+  return response;
+});
+
 /** Leagues end Monday 00:00 UTC. */
 function weekEnd(now: number): number {
   const d = new Date(now);
@@ -367,11 +454,56 @@ export const settleLeagues = onSchedule({ schedule: 'every monday 00:05', timeZo
       .sort((a, b) => a.lastXpAt - b.lastXpAt);
     const outcomes = settleCohort(members, data.tier);
 
+    // A deleted account's user doc is gone; updating it would fail the whole batch.
+    const users = members.length ? await db.getAll(...members.map((m) => userRef(m.uid))) : [];
+    const live = new Set(users.filter((u) => u.exists).map((u) => u.id));
     const batch = db.batch();
     for (const [uid, outcome] of outcomes) {
-      batch.update(userRef(uid), { 'game.leagueTier': nextTier(data.tier, outcome), 'game.leagueCohort': null });
+      if (live.has(uid)) batch.update(userRef(uid), { 'game.leagueTier': nextTier(data.tier, outcome), 'game.leagueCohort': null });
     }
     batch.update(c.ref, { settled: true, outcomes: Object.fromEntries(outcomes) });
     await batch.commit();
   }
+});
+
+// -------------------------------------------------------------- reportUser
+
+/**
+ * Reports a league member's name (App Store 1.2). The reporter also stops seeing that member.
+ * After REPORTS_TO_HIDE distinct reporters the name is replaced everywhere until reviewed;
+ * open reports are in `reports/{uid}` (Firebase console).
+ */
+export const reportUser = onCall<{ uid: string; cohortId: string }>(async (req) => {
+  const reporter = requireUid(req.auth);
+  const { uid: target, cohortId } = req.data ?? {};
+  if (typeof target !== 'string' || typeof cohortId !== 'string' || target === reporter) throw new HttpsError('invalid-argument', 'Bad report.');
+  const cohortRef = db.doc(`leagues/${cohortId}`);
+  const reportRef = db.doc(`reports/${target}`);
+  await db.runTransaction(async (tx) => {
+    const [cohort, report, targetUser] = await Promise.all([tx.get(cohortRef), tx.get(reportRef), tx.get(userRef(target))]);
+    const members = (cohort.data()?.members ?? {}) as Record<string, { name: string }>;
+    if (!members[target] || !members[reporter]) throw new HttpsError('not-found', 'That player is not in your league.');
+    const reporters: string[] = report.data()?.reporters ?? [];
+    if (!reporters.includes(reporter)) reporters.push(reporter);
+    tx.set(reportRef, { name: members[target].name, reporters, count: reporters.length, lastAt: Date.now(), status: 'open' }, { merge: true });
+    tx.update(userRef(reporter), { blocked: FieldValue.arrayUnion(target) });
+    if (reporters.length >= REPORTS_TO_HIDE && members[target].name !== HIDDEN_NAME) {
+      tx.update(cohortRef, { [`members.${target}.name`]: HIDDEN_NAME });
+      if (targetUser.exists) tx.update(userRef(target), { displayName: HIDDEN_NAME });
+    }
+  });
+});
+
+// ----------------------------------------------------------- deleteAccount
+
+/** In-app account deletion (App Store 5.1.1(v)): user data, league entries, then the auth user. */
+export const deleteAccount = onCall(async (req) => {
+  const uid = requireUid(req.auth);
+  const cohorts = await db.collection('leagues').where(`members.${uid}.lastXpAt`, '>', 0).get();
+  for (const c of cohorts.docs) {
+    await c.ref.update({ [`members.${uid}`]: FieldValue.delete(), size: FieldValue.increment(-1) });
+  }
+  await db.recursiveDelete(userRef(uid));
+  await db.doc(`reports/${uid}`).delete();
+  await getAuth().deleteUser(uid);
 });

@@ -1,8 +1,7 @@
-import { AppleAuthProvider, linkWithCredential } from '@react-native-firebase/auth';
 import * as AppleAuthentication from 'expo-apple-authentication';
-import * as Crypto from 'expo-crypto';
 import { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { predictScore } from '@shared/adaptive/score';
@@ -11,9 +10,11 @@ import { TIERS } from '@shared/progression/league';
 import { getTest } from '@shared/taxonomy';
 
 import { GameButton } from '@/components/game-button';
+import { LINKS, TRADEMARK_NOTICE } from '@/constants/links';
 import { Brand } from '@/constants/theme';
-import { buyItem } from '@/data/api';
+import { buyItem, deleteAccount } from '@/data/api';
 import { useTheme } from '@/hooks/use-theme';
+import { linkApple as linkAppleAccount, revokeAppleIfLinked } from '@/lib/apple';
 import { auth } from '@/lib/firebase';
 import { useSession } from '@/state/session';
 
@@ -26,20 +27,46 @@ export default function ProfileScreen() {
 
   const linkApple = async () => {
     try {
-      const nonce = Crypto.randomUUID();
-      const hashed = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, nonce);
-      const apple = await AppleAuthentication.signInAsync({
-        requestedScopes: [AppleAuthentication.AppleAuthenticationScope.FULL_NAME],
-        nonce: hashed,
-      });
-      if (!apple.identityToken) throw new Error('Apple returned no identity token');
-      // Link keeps the same uid, so all anonymous progress carries over.
-      await linkWithCredential(user, AppleAuthProvider.credential(apple.identityToken, nonce));
-    } catch (e: unknown) {
-      if ((e as { code?: string }).code === 'ERR_REQUEST_CANCELED') return;
+      await linkAppleAccount(
+        () =>
+          new Promise((resolve) =>
+            Alert.alert(
+              'Switch accounts?',
+              'This Apple ID already has a PrepPath account. Switching loads that account; progress made on this device without signing in will be lost.',
+              [
+                { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
+                { text: 'Switch', onPress: () => resolve(true) },
+              ],
+            ),
+          ),
+      );
+    } catch (e) {
       Alert.alert('Sign in failed', e instanceof Error ? e.message : String(e));
     }
   };
+
+  // App Store 5.1.1(v): deletion from inside the app. Signing out afterwards drops to a fresh
+  // anonymous session, and the router guard shows onboarding.
+  const removeAccount = () =>
+    Alert.alert('Delete your account?', 'This permanently deletes your progress, XP, streak, gems and league history. It cannot be undone.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          setBusy(true);
+          try {
+            if (!(await revokeAppleIfLinked())) return;
+            await deleteAccount();
+            await auth.signOut();
+          } catch (e) {
+            Alert.alert("Couldn't delete your account", e instanceof Error ? e.message : String(e));
+          } finally {
+            setBusy(false);
+          }
+        },
+      },
+    ]);
 
   const buyFreeze = async () => {
     setBusy(true);
@@ -114,8 +141,27 @@ export default function ProfileScreen() {
         {!user.isAnonymous && (
           <GameButton title="Sign out" variant="locked" onPress={() => auth.signOut()} style={{ marginTop: 8 }} />
         )}
+
+        <View style={styles.links}>
+          <Link label="Privacy" url={LINKS.privacy} />
+          <Link label="Terms" url={LINKS.terms} />
+          <Link label="Support" url={LINKS.support} />
+        </View>
+        <Pressable onPress={removeAccount} disabled={busy} hitSlop={8}>
+          <Text style={{ color: Brand.wrong, textAlign: 'center', fontWeight: '700' }}>Delete account</Text>
+        </Pressable>
+        <Text style={[styles.note, { color: theme.textSecondary, textAlign: 'center' }]}>{TRADEMARK_NOTICE}</Text>
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+function Link({ label, url }: { label: string; url: string }) {
+  const theme = useTheme();
+  return (
+    <Pressable onPress={() => WebBrowser.openBrowserAsync(url)} hitSlop={8}>
+      <Text style={{ color: theme.textSecondary, fontWeight: '700', textDecorationLine: 'underline' }}>{label}</Text>
+    </Pressable>
   );
 }
 
@@ -141,4 +187,5 @@ const styles = StyleSheet.create({
   h2: { fontSize: 18, fontWeight: '800' },
   big: { fontSize: 34, fontWeight: '800', marginVertical: 4 },
   note: { fontSize: 12, marginTop: 8 },
+  links: { flexDirection: 'row', justifyContent: 'center', gap: 24, marginTop: 16 },
 });

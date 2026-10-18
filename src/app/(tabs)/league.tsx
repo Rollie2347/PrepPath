@@ -1,11 +1,12 @@
 import { doc, onSnapshot } from '@react-native-firebase/firestore';
 import { useEffect, useState } from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { ActionSheetIOS, Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DEMOTE, PROMOTE, TIERS } from '@shared/progression/league';
 
 import { Brand } from '@/constants/theme';
+import { blockUser, reportUser } from '@/data/api';
 import { useTheme } from '@/hooks/use-theme';
 import { db } from '@/lib/firebase';
 import { useSession } from '@/state/session';
@@ -47,7 +48,9 @@ export default function LeagueScreen() {
     );
   }
 
+  const blocked = new Set(profile.blocked ?? []);
   const ranked = Object.entries(cohort.members)
+    .filter(([uid]) => !blocked.has(uid))
     .map(([uid, m]) => ({ uid, ...m }))
     .sort((a, b) => b.weeklyXp - a.weeklyXp || a.lastXpAt - b.lastXpAt);
   const daysLeft = snap?.daysLeft ?? 0;
@@ -72,19 +75,38 @@ export default function LeagueScreen() {
             <View>
               {canPromote && index === PROMOTE && <Divider label="PROMOTION ZONE ↑" color={Brand.correct} />}
               {canDemote && index === ranked.length - DEMOTE && <Divider label="DEMOTION ZONE ↓" color={Brand.wrong} />}
-              <View style={[styles.row, item.uid === user?.uid && { backgroundColor: theme.backgroundElement }]}>
+              <Pressable
+                disabled={item.uid === user?.uid}
+                onPress={() => memberActions(item.uid, item.name, snap!.id)}
+                accessibilityHint="Report or block this player"
+                style={[styles.row, item.uid === user?.uid && { backgroundColor: theme.backgroundElement }]}>
                 <Text style={[styles.rank, { color: zone === 'up' ? Brand.correct : zone === 'down' ? Brand.wrong : theme.textSecondary }]}>
                   {index + 1}
                 </Text>
                 <Text style={styles.avatar}>{item.avatar}</Text>
                 <Text style={{ color: theme.text, flex: 1, fontWeight: '700' }}>{item.name}</Text>
                 <Text style={{ color: theme.textSecondary, fontWeight: '700' }}>{item.weeklyXp} XP</Text>
-              </View>
+              </Pressable>
             </View>
           );
         }}
       />
     </SafeAreaView>
+  );
+}
+
+/** Report (also hides) or just block another league member. App Store 1.2. */
+function memberActions(uid: string, name: string, cohortId: string) {
+  const fail = (e: unknown) => Alert.alert('Something went wrong', e instanceof Error ? e.message : String(e));
+  ActionSheetIOS.showActionSheetWithOptions(
+    { title: name, options: ['Report name', 'Block', 'Cancel'], destructiveButtonIndex: 0, cancelButtonIndex: 2 },
+    (i) => {
+      if (i === 0)
+        reportUser({ uid, cohortId })
+          .then(() => Alert.alert('Thanks for reporting', "We'll review this name. You won't see this player anymore."))
+          .catch(fail);
+      if (i === 1) blockUser(uid).catch(fail);
+    },
   );
 }
 

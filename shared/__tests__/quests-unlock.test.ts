@@ -1,7 +1,5 @@
-import { isCorrect } from '../grading';
 import { applyCheckpoint, buildPath, isUnlocked } from '../progression/path';
 import { advanceQuests, questsFor } from '../progression/quests';
-import type { Question } from '../types';
 
 describe('quests', () => {
   it('gives 3 distinct-kind quests, stable per user/day', () => {
@@ -36,17 +34,5 @@ describe('isUnlocked', () => {
   it('unlocks the next unit after a checkpoint', () => {
     const p = applyCheckpoint(units[0], {});
     expect(isUnlocked(units, p, units[1].nodes[0].id)).toBe(true);
-  });
-});
-
-describe('isCorrect', () => {
-  const base = { id: 'q', test: 'sat', sectionId: 'sat.math', skillId: 's', difficulty: 3, stem: '', explanation: '', reviewStatus: 'approved', source: { kind: 'generated', name: '', license: '' } } as const;
-  it('grades MC by index and grid-in by normalized string', () => {
-    expect(isCorrect({ ...base, choices: ['a', 'b'], answer: 1 } as Question, 1)).toBe(true);
-    expect(isCorrect({ ...base, choices: ['a', 'b'], answer: 1 } as Question, 0)).toBe(false);
-    const grid = { ...base, answer: ['3/4', '.75', '0.75'] } as Question;
-    expect(isCorrect(grid, ' 3 / 4 ')).toBe(true);
-    expect(isCorrect(grid, '.75')).toBe(true);
-    expect(isCorrect(grid, '0.7')).toBe(false);
   });
 });

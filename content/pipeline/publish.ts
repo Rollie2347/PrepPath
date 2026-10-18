@@ -1,4 +1,4 @@
-// Usage: npm run publish [-- --dry-run]
+// Usage: npm run publish [-- --dry-run | --emulator]
 // Pushes approved questions to Firestore `questions/` and regenerates ../pack.json (the
 // offline pack bundled in the app: up to PACK_PER_SKILL approved questions per skill).
 // Needs GOOGLE_APPLICATION_CREDENTIALS pointing at a service-account key for the project.
@@ -15,6 +15,8 @@ import { readBank } from './bank';
 
 const PACK_PER_SKILL = 12;
 const dryRun = process.argv.includes('--dry-run');
+// Local Firestore emulator (npm run emulators): no service-account key needed.
+const emulator = process.argv.includes('--emulator');
 const here = path.dirname(fileURLToPath(import.meta.url));
 
 const approved: Question[] = readBank()
@@ -31,7 +33,8 @@ if (dryRun) {
   process.exit(0);
 }
 
-initializeApp();
+if (emulator) process.env.FIRESTORE_EMULATOR_HOST ??= 'localhost:8080';
+initializeApp(emulator ? { projectId: 'preppath-app' } : undefined);
 const db = getFirestore();
 for (let i = 0; i < approved.length; i += 400) {
   const batch = db.batch();
@@ -42,4 +45,4 @@ for (let i = 0; i < approved.length; i += 400) {
   await batch.commit();
 }
 fs.writeFileSync(path.resolve(here, '..', 'pack.json'), JSON.stringify(pack, null, 0) + '\n');
-console.log(`Published ${approved.length} questions to Firestore; pack.json holds ${pack.length}.`);
+console.log(`Published ${approved.length} questions to ${emulator ? 'the Firestore emulator' : 'Firestore'}; pack.json holds ${pack.length}.`);

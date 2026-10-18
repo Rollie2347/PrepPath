@@ -1,3 +1,5 @@
+import * as AppleAuthentication from 'expo-apple-authentication';
+import * as WebBrowser from 'expo-web-browser';
 import { useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,14 +9,18 @@ import type { TestId } from '@shared/types';
 import { AVATARS, DAILY_GOALS } from '@shared/user';
 
 import { GameButton } from '@/components/game-button';
+import { LINKS, TRADEMARK_NOTICE } from '@/constants/links';
 import { Brand } from '@/constants/theme';
 import { initUser } from '@/data/api';
 import { useTheme } from '@/hooks/use-theme';
+import { signInWithApple } from '@/lib/apple';
+import { useSession } from '@/state/session';
 
 type Goal = { testDate: string; current: string; target: string };
 
 export default function Onboarding() {
   const theme = useTheme();
+  const { user } = useSession();
   const [step, setStep] = useState(0);
   const [tests, setTests] = useState<TestId[]>([]);
   const [goals, setGoals] = useState<Record<TestId, Goal>>({
@@ -25,6 +31,20 @@ export default function Onboarding() {
   const [name, setName] = useState('');
   const [avatar, setAvatar] = useState(AVATARS[0]);
   const [saving, setSaving] = useState(false);
+  const signedIn = !!user && !user.isAnonymous;
+
+  // An Apple ID that already finished onboarding switches accounts; the router guard then
+  // leaves onboarding on its own. A new one carries on here with the name prefilled.
+  const apple = async () => {
+    try {
+      const res = await signInWithApple();
+      if (!res) return;
+      if (res.givenName) setName((n) => n || res.givenName!.slice(0, 20));
+      setStep(1);
+    } catch (e) {
+      Alert.alert('Sign in failed', e instanceof Error ? e.message : String(e));
+    }
+  };
 
   const toggle = (t: TestId) => setTests((ts) => (ts.includes(t) ? ts.filter((x) => x !== t) : [...ts, t]));
 
@@ -66,6 +86,40 @@ export default function Onboarding() {
   };
 
   const steps = [
+    {
+      title: 'Welcome to PrepPath',
+      valid: true,
+      body: (
+        <View style={{ gap: 16 }}>
+          <Text style={{ color: theme.textSecondary, fontSize: 17, lineHeight: 24 }}>
+            Free SAT and ACT prep, one short lesson at a time. Sign in to keep your progress on any device.
+          </Text>
+          {signedIn ? (
+            <Text style={[styles.label, { color: Brand.correct }]}>Signed in with Apple ✓</Text>
+          ) : (
+            <AppleAuthentication.AppleAuthenticationButton
+              buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+              buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+              cornerRadius={14}
+              style={{ height: 52 }}
+              onPress={apple}
+            />
+          )}
+          <Text style={{ color: theme.textSecondary, fontSize: 13, lineHeight: 19 }}>
+            By continuing you agree to the{' '}
+            <Text style={{ textDecorationLine: 'underline' }} onPress={() => WebBrowser.openBrowserAsync(LINKS.terms)}>
+              Terms
+            </Text>{' '}
+            and{' '}
+            <Text style={{ textDecorationLine: 'underline' }} onPress={() => WebBrowser.openBrowserAsync(LINKS.privacy)}>
+              Privacy Policy
+            </Text>
+            .
+          </Text>
+          <Text style={{ color: theme.textSecondary, fontSize: 12, lineHeight: 17 }}>{TRADEMARK_NOTICE}</Text>
+        </View>
+      ),
+    },
     {
       title: 'Which test are you taking?',
       valid: tests.length > 0,
@@ -124,7 +178,8 @@ export default function Onboarding() {
       <View style={styles.footer}>
         {step > 0 && <GameButton title="Back" variant="locked" onPress={() => setStep(step - 1)} style={{ flex: 1 }} />}
         <GameButton
-          title={step === steps.length - 1 ? (saving ? 'Saving…' : "Let's go") : 'Continue'}
+          title={step === steps.length - 1 ? (saving ? 'Saving…' : "Let's go") : step === 0 && !signedIn ? 'Not now' : 'Continue'}
+          variant={step === 0 && !signedIn ? 'locked' : 'primary'}
           disabled={!s.valid || saving}
           onPress={() => (step === steps.length - 1 ? finish() : setStep(step + 1))}
           style={{ flex: 2 }}

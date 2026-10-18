@@ -1,0 +1,44 @@
+<!doctype html>
+<html><head><style>html,body{margin:0;padding:0;background:transparent}svg{display:block}</style></head>
+<body>
+<svg id="icon" xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4C8FF8"/>
+      <stop offset="1" stop-color="#1D5FCC"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.22" r="0.5">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <rect width="1024" height="1024" fill="url(#glow)"/>
+
+  <!-- Winding path from bottom to the goal -->
+  <path d="M 512 1080 C 512 960, 300 900, 330 780 C 360 660, 700 640, 690 520 C 680 400, 470 390, 512 270"
+        fill="none" stroke="#FFFFFF" stroke-opacity="0.28" stroke-width="120" stroke-linecap="round"/>
+  <path d="M 512 1080 C 512 960, 300 900, 330 780 C 360 660, 700 640, 690 520 C 680 400, 470 390, 512 270"
+        fill="none" stroke="#FFFFFF" stroke-width="16" stroke-linecap="round" stroke-dasharray="2 46"/>
+
+  <!-- Completed nodes (app's path-node style: face + darker base) -->
+  <g>
+    <ellipse cx="330" cy="800" rx="92" ry="80" fill="#15803D"/>
+    <ellipse cx="330" cy="780" rx="92" ry="80" fill="#22C55E"/>
+    <path d="M 290 782 L 318 810 L 372 754" fill="none" stroke="#FFFFFF" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <g>
+    <ellipse cx="690" cy="540" rx="92" ry="80" fill="#15803D"/>
+    <ellipse cx="690" cy="520" rx="92" ry="80" fill="#22C55E"/>
+    <path d="M 650 522 L 678 550 L 732 494" fill="none" stroke="#FFFFFF" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Goal: gold star node -->
+  <g>
+    <ellipse cx="512" cy="272" rx="128" ry="112" fill="#B98500"/>
+    <ellipse cx="512" cy="246" rx="128" ry="112" fill="#F5B301"/>
+    <path d="M 512 168 L 535 218 L 590 224 L 549 260 L 561 314 L 512 287 L 463 314 L 475 260 L 434 224 L 489 218 Z"
+          fill="#FFFFFF" stroke="#FFFFFF" stroke-width="12" stroke-linejoin="round"/>
+  </g>
+</svg>
+</body></html>

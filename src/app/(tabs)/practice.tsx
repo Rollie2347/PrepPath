@@ -27,6 +27,7 @@ export default function PracticeScreen() {
         <Card icon="bookmark.fill" color={Brand.primary} title="Bookmarks" sub={`${progress.bookmarks.length} saved`} disabled={!progress.bookmarks.length} onPress={() => start(PRACTICE.bookmarks)} />
         <Card icon="target" color={Brand.flame} title="Weakest skills" sub="Drill your 3 lowest-rated skills" onPress={() => start(PRACTICE.weakest)} />
         <Card icon="flame.fill" color="#7C3AED" title="Hardest questions" sub="Top-difficulty only" onPress={() => start(PRACTICE.hardest)} />
+        <Card icon="function" color={Brand.correct} title="Graphing calculator" sub="Graph, find intersections and zeros, use sliders" onPress={() => router.push('/calculator')} />
 
         {getTest(test).sections.map((section) => (
           <View key={section.id}>
